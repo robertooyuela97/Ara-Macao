@@ -1,5 +1,5 @@
-# Usa una imagen base de Python ligera
-FROM python:3.9-slim-buster
+# Usa una imagen base de Python ligera y moderna (Debian Bullseye)
+FROM python:3.10-slim
 
 # Evita que Python escriba archivos .pyc y bufferiza stdout
 ENV PYTHONDONTWRITEBYTECODE=1
