@@ -22,11 +22,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copia todo el código del proyecto al contenedor
 COPY . .
 
-# Recopila archivos estáticos para producción
-RUN python manage.py collectstatic --noinput 2>/dev/null || true
-
-# Expone el puerto de la aplicación (Render usa el puerto asignado, por defecto 8000)
+# Expone el puerto de la aplicación (Render asigna el puerto vía variable $PORT)
 EXPOSE 8000
 
-# Ejecuta la aplicación con Gunicorn (servidor WSGI para producción)
-CMD ["gunicorn", "memory_game_main.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Ejecuta collectstatic, migraciones y arranca Gunicorn usando el puerto de Render
+CMD python manage.py collectstatic --noinput && python manage.py migrate && gunicorn memory_game_main.wsgi:application --bind 0.0.0.0:$PORT
