@@ -1,4 +1,6 @@
 # memgame/views.py
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -8,6 +10,8 @@ from django.utils import timezone
 from django.urls import reverse
 from .models import PlayerProfile, GameSession
 import random, json
+
+logger = logging.getLogger(__name__)
 
 # ===== Orden oficial de niveles =====
 LEVELS = ["Básico", "Medio", "Avanzado"]
@@ -336,7 +340,24 @@ def leaderboard_top_api(request):
         # Pedimos un lote amplio a Redis para poder filtrar por nombre/nivel en Python
         raw = lb.get_top(count=200, min_score=min_score_f, max_score=max_score_f, order=order)
     except UpstashLeaderboardError as exc:
-        return JsonResponse({"status": "error", "message": str(exc)}, status=502)
+        # Si Upstash falla (conexión, credenciales inválidas, etc.),
+        # retornamos una lista vacía de forma segura para no romper la plantilla.
+        msg = f"Upstash no disponible, retornando ranking vacío: {exc}"
+        logger.error(msg)
+        print(msg, flush=True)
+        return JsonResponse({
+            "status": "success",
+            "top": [],
+            "count": 0,
+            "filters": {
+                "name": name,
+                "level": level,
+                "min_score": min_score_f,
+                "max_score": max_score_f,
+                "order": order,
+            },
+            "warning": "Servicio de ranking temporalmente no disponible.",
+        })
 
     # Enriquecer y filtrar por nombre y nivel
     enriched = []
