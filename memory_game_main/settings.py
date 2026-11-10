@@ -31,6 +31,16 @@ ALLOWED_HOSTS = os.environ.get(
     "ara-macao.onrender.com,.onrender.com,localhost,127.0.0.1,*"
 ).split(",")
 
+# CSRF trusted origins para Render (evita que el login POST falle por CSRF)
+CSRF_TRUSTED_ORIGINS = [
+    'https://ara-macao.onrender.com',
+    'https://*.onrender.com',
+]
+
+# Seguridad detrás del proxy de Render
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Application definition
 
@@ -59,7 +69,7 @@ ROOT_URLCONF = 'memory_game_main.urls'
 
 # URL de login personalizada (apunta a la vista login_view de memgame en la ruta raíz "/")
 LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/select_level/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 TEMPLATES = [
