@@ -21,6 +21,7 @@ from django.urls import path, include
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include(("memgame.urls", "memgame"), namespace="memgame")),
-       path("memgame/", include(("memgame.urls", "memgame"), namespace="memgame")),
+    path("memgame/", include(("memgame.urls", "memgame"), namespace="memgame")),
+    path("accounts/", include("django.contrib.auth.urls")),
 ]
 

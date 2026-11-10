@@ -57,6 +57,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'memory_game_main.urls'
 
+# URL de login personalizada (apunta a la vista login_view de memgame en la ruta raíz "/")
+LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/select_level/'
+LOGOUT_REDIRECT_URL = '/login/'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
