@@ -96,15 +96,20 @@ WSGI_APPLICATION = 'memory_game_main.wsgi.application'
 
 import dj_database_url
 
-# Configuración de base de datos PostgreSQL vía DATABASE_URL (sin fallback a SQLite)
+# Configuración estricta de base de datos PostgreSQL vía DATABASE_URL
 # En producción (Render) se define la variable de entorno DATABASE_URL.
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    raise ValueError("DATABASE_URL no está definida en las variables de entorno de Render.")
 
 
 # Password validation
