@@ -3,43 +3,149 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Memory Game - {{ level }}</title>
+    <title>Ara Macao Memory - {{ level }}</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    
     {% load static %}
     <link rel="stylesheet" href="{% static 'memgame/css/style.css' %}">
+    
+    <style>
+        /* Estilos para el HUD de la Expedición */
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(10, 31, 20, 0.08);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid #d4af37; /* Color Oro Maya */
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.1);
+        }
+        .stat-item { text-align: center; }
+        .stat-label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #064e3b; /* Jade oscuro */
+            font-weight: 700;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #064e3b;
+            line-height: 1;
+        }
+        h1 {
+            color: #064e3b;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .level-indicator {
+            background: #d4af37;
+            color: #064e3b;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+
+        /* Control de cuadrícula dinámica para 8, 12 o 16 cartas */
+        #game-board {
+            display: grid;
+            gap: 15px;
+            justify-content: center;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+
+        /* Clases para adaptar el tablero según num_cards enviado desde Django */
+        .grid-8 { grid-template-columns: repeat(4, 1fr); }
+        .grid-12 { grid-template-columns: repeat(4, 1fr); }
+        .grid-16 { grid-template-columns: repeat(4, 1fr); }
+
+        @media (max-width: 576px) {
+            .grid-8, .grid-12, .grid-16 { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Memory Game - Nivel {{ level }}</h1>
+    <div class="container py-4">
+        <h1>Ara Macao Memory 🦜</h1>
+        <div class="text-center mb-4">
+            <span class="level-indicator">
+                {% if level == 'Avanzado' %}
+                    Desafío: Maestro Baktún 🏺
+                {% elif level == 'Medio' %}
+                    Desafío: Guía de la Selva 🌿
+                {% else %}
+                    Desafío: Explorador Principiante 🌱
+                {% endif %}
+            </span>
+        </div>
 
-        <p>Intentos restantes: <span id="attempts-left">{{ initial_attempts }}</span></p>
-        <p>
-            Tiempo restante:
-            <span id="time-left" data-initial-time-limit="{{ game_time_limit }}">{{ game_time_limit }}</span>
-            segundos
-        </p>
+        <div class="game-stats">
+            <div class="stat-item">
+                <span class="stat-label">Resistencia (Intentos)</span>
+                <span id="attempts-left" class="stat-value">{{ initial_attempts }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Reloj de Arena (Tiempo)</span>
+                <div>
+                    <span id="time-left" class="stat-value" data-initial-time-limit="{{ game_time_limit }}">
+                        {{ game_time_limit }}
+                    </span>
+                    <span style="font-weight: 700; color: #064e3b;">s</span>
+                </div>
+            </div>
+        </div>
 
-        <div id="game-board" class="row"></div>
+        <div id="game-board" class="grid-{{ num_cards }}"></div>
 
         <p class="mt-4 text-center">
-            <a href="{% url 'memgame:select_level' %}" class="btn btn-info">
-                Volver a Seleccionar Nivel
+            <a href="{% url 'memgame:leaderboard' %}" class="btn btn-outline-info btn-lg px-4" style="border-radius: 25px;">
+                🏆 Ver Ranking
+            </a>
+        </p>
+
+        <p class="mt-5 text-center">
+            <a href="{% url 'memgame:select_level' %}" class="btn btn-outline-danger px-5 py-2 font-weight-bold" style="border-radius: 25px;">
+                Abandonar Expedición
             </a>
         </p>
     </div>
 
     <div class="modal fade" id="endGameModal" tabindex="-1" aria-labelledby="endGameLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center">
-                <div class="modal-header">
-                    <h5 class="modal-title w-100" id="endGameLabel"></h5>
+            <div class="modal-content text-center" style="border-radius: 25px; border: 4px solid #d4af37; background: #fdfdfd;">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title w-100 font-weight-bold" id="endGameLabel" style="color: #064e3b; font-size: 2.2rem;"></h5>
                 </div>
-                <div class="modal-body" id="endGameMessage"></div>
-                <div class="modal-footer justify-content-center">
-                    <a id="next-level-btn" class="btn btn-success d-none">Siguiente nivel</a>
-                    <button type="button" class="btn btn-primary" onclick="location.reload()">Jugar de nuevo</button>
-                    <a href="{% url 'memgame:select_level' %}" class="btn btn-secondary">Seleccionar otro Nivel</a>
+                <div class="modal-body py-4" id="endGameMessage" style="font-size: 1.3rem; color: #444;">
+                    </div>
+                <div class="modal-footer justify-content-center border-0 pb-5">
+                    <!-- Formulario rápido para guardar en el Leaderboard -->
+                    <div id="leaderboard-save-box" class="d-none text-center mb-3 w-100">
+                        <input type="text" id="leaderboard-name" class="form-control form-control-sm d-inline-block w-auto"
+                               placeholder="Tu nombre" maxlength="30"
+                               style="max-width: 200px;">
+                        <button type="button" id="leaderboard-save-btn" class="btn btn-warning btn-sm px-3 ml-2"
+                                style="border-radius: 15px;">Guardar en Leaderboard</button>
+                    </div>
+                    <div id="leaderboard-saved-msg" class="d-none text-success small font-weight-bold">
+                        ¡Puntaje guardado en el Leaderboard! 🎉
+                    </div>
+
+                    <a id="next-level-btn" class="btn btn-success btn-lg px-4 d-none" style="border-radius: 15px;">Siguiente Nivel</a>
+                    <button type="button" class="btn btn-primary btn-lg px-4" style="border-radius: 15px;" onclick="location.reload()">Reintentar</button>
+                    <a href="{% url 'memgame:select_level' %}" class="btn btn-secondary btn-lg px-4" style="border-radius: 15px;">Mapa de Niveles</a>
+                    <a href="{% url 'memgame:leaderboard' %}" class="btn btn-outline-info btn-lg px-4" style="border-radius: 15px;">Ver Top 10</a>
                 </div>
             </div>
         </div>
@@ -53,16 +159,15 @@
     {{ cards|json_script:"cards-data" }}
 
     <script>
-        const cardsData = JSON.parse(document.getElementById('cards-data').textContent);
-        const gameSessionId = parseInt('{{ game_session_id }}');
         const gameLevelName = "{{ level|escapejs }}";
-        const profileUrl = "{% url 'memgame:profile' %}";
         const endGameUrl = "{% url 'memgame:game_end_api' game_session_id %}";
-        const selectLevelUrl = "{% url 'memgame:select_level' %}";
+        const leaderboardSubmitUrl = "{% url 'memgame:leaderboard_submit_api' %}";
+        const csrfToken = "{{ csrf_token }}";
     </script>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'memgame/js/game.js' %}"></script>
+    
+    <script src="{% static 'memgame/js/game.js' %}?v=1.3"></script>
 </body>
 </html>

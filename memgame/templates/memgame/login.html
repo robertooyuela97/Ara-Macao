@@ -3,32 +3,97 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - Memory Game</title>
+    <title>Login - Ara Macao Memory 🦜</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
     {% load static %}
     <link rel="stylesheet" href="{% static 'memgame/css/style.css' %}">
+    
+    <style>
+        /* Estilos específicos para que el formulario de Django se vea bien aquí */
+        .login-form-container form p {
+            margin-bottom: 1.5rem; /* Espaciado entre campos */
+            color: #eee;
+            font-weight: 400;
+        }
+        
+        .login-form-container form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--maya-gold);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+        
+        /* Aseguramos que los inputs tomen el estilo que definimos en style.css */
+        .login-form-container form input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid var(--jade-medium) !important;
+            color: var(--maya-gold) !important;
+            border-radius: 4px;
+        }
+        
+        /* Título del Login centrado y dorado */
+        .login-title {
+            color: var(--maya-gold);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        /* Subtítulos blancos */
+        .login-subtitle {
+            color: #fff;
+            opacity: 0.8;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 1.5rem;
+        }
+        
+        .login-instructions {
+            color: #eee;
+            font-weight: 400;
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
-<body>
+<body class="login-page">
 
     <div class="split-container">
         
         <div class="login-section">
-            <div class="login-form-container">
-                <div class="card">
-                    <div class="card-header text-center">
-                        <h1>Memory Game🐵 Grupo #2</h1>
-                        <h2><b>Iniciar Sesión</b></h2>
-                    </div>
-                    <div class="card-body">
-                        <form method="post" action="">
-                            {% csrf_token %}
+            <div class="login-form-container text-center">
+                <h1 class="login-title">
+                    Ara Macao Memory <span style="font-size: 0.9em;">🦜</span>
+                </h1>
+                <p class="login-subtitle">Desafío Lenca de Parejas</p>
+                <hr style="border-top: 1px solid var(--maya-gold); opacity: 0.3; margin-bottom: 2rem;">
+                
+                <h2 style="color: #fff; font-size: 1.5rem; margin-bottom: 0.5rem;"><b>Iniciar Sesión</b></h2>
+                <p class="login-instructions">Bienvenido, Expedicionario.</p>
+
+                <div class="login-body">
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        
+                        <div class="form-group text-left">
                             {{ form.as_p }}
-                            <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
-                        </form>
-                        <hr />
-                        <p class="text-center">
-                            ¿No tienes cuenta?
-                            <a href="{% url 'memgame:register' %}">Regístrate aquí</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block mb-3">
+                            Comenzar el Desafío
+                        </button>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <p class="text-center" style="color: #eee; font-weight: 400;">
+                            ¿Aún no tienes credenciales? <br>
+                            <a href="{% url 'memgame:register' %}" style="color: var(--maya-gold); font-weight: 700; text-decoration: underline;">
+                                Regístrate aquí
+                            </a>
                         </p>
                     </div>
                 </div>
@@ -39,6 +104,8 @@
             </div>
 
     </div>
-    
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

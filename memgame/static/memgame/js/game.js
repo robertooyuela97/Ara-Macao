@@ -1,304 +1,191 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const gameBoard = document.getElementById('game-board');
-  const attemptsLeftSpan = document.getElementById('attempts-left');
-  const timeLeftSpan = document.getElementById('time-left');
-  const victorySound = document.getElementById('victory-sound');
-  const defeatSound = document.getElementById('defeat-sound');
-  const backgroundMusic = document.getElementById('background-music');
+    const gameBoard = document.getElementById('game-board');
+    const attemptsSpan = document.getElementById('attempts-left');
+    const timeSpan = document.getElementById('time-left');
+    
+    // ICONOS TEMÁTICOS ACTUALIZADOS
+    const icons = ['🦜', '🐆', '🐒', '🐍', '🦌', '🌸', '🏺', '🗿']; 
 
-  // ===== SFX opcionales/adicionales =====
-  const flipSound = document.getElementById('flip-sound') || null;
-  const matchSound = document.getElementById('match-sound') || null;      // opcional
-  const mismatchSound = document.getElementById('mismatch-sound') || null;  // opcional
+    // Obtener datos desde el JSON_SCRIPT del HTML
+    const cardsData = JSON.parse(document.getElementById('cards-data').textContent);
+    
+    let attempts = parseInt(attemptsSpan.textContent);
+    let timeLeft = parseInt(timeSpan.textContent);
+    let initialTime = timeLeft; 
+    let matchedPairs = 0;
+    let totalPairs = cardsData.length / 2;
+    let flippedCards = [];
+    let lockBoard = false;
+    let timer;
 
-  // Helper para reproducir efectos (permite solapar reproducciones)
-  function playSfx(el, volume = 1.0) {
-    if (!el) return;
-    try {
-      const node = el.cloneNode(true);
-      node.volume = volume;
-      node.play().catch(() => {});
-    } catch (_) {}
-  }
+    function renderBoard() {
+        gameBoard.innerHTML = '';
+        cardsData.forEach(val => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.value = val; 
+            
+            // Convertir el valor (1-8) al icono correspondiente
+            const iconIndex = parseInt(val) - 1;
 
-  // Requiere que el template defina ANTES de cargar este archivo:
-  // - cardsData           (array)
-  // - gameSessionId       (int)
-  // - gameLevelName       (str: "Básico" | "Medio" | "Avanzado")
-  // - endGameUrl          (str: url memgame:game_end_api)
-  // - selectLevelUrl      (str: url memgame:select_level)
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-front"></div>
+                    <div class="card-back">${icons[iconIndex] || '❓'}</div>
+                </div>`;
+            card.addEventListener('click', flipCard);
+            gameBoard.appendChild(card);
+        });
+        
+        // Ajustar columnas dinámicamente según el número de cartas
+        const totalCards = cardsData.length;
+        if(totalCards <= 8) gameBoard.style.gridTemplateColumns = 'repeat(4, 100px)';
+        else if(totalCards <= 12) gameBoard.style.gridTemplateColumns = 'repeat(4, 100px)';
+        else gameBoard.style.gridTemplateColumns = 'repeat(4, 100px)';
+    }
 
-  // --- CSRF helper (único) ---
-  function getCsrfToken() {
-    const name = 'csrftoken';
-    const cookieValue = document.cookie
-      .split('; ')
-      .find(row => row.startsWith(name + '='));
-    return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : '';
-  }
-  const csrfToken = getCsrfToken();
+    function flipCard() {
+        if (lockBoard || this.classList.contains('flipped') || this.classList.contains('matched')) return;
+        
+        document.getElementById('flip-sound').play();
+        this.classList.add('flipped');
+        flippedCards.push(this);
 
-  // Música por nivel (opcional)
-  const backgroundMusicFileNames = {
-    'Básico': 'background_music_basic.mp3',
-    'Medio': 'background_music_medium.mp3',
-    'Avanzado': 'background_music_advanced.mp3'
-  };
+        if (flippedCards.length === 2) {
+            lockBoard = true;
+            const [c1, c2] = flippedCards;
+            
+            if (c1.dataset.value === c2.dataset.value) {
+                c1.classList.add('matched');
+                c2.classList.add('matched');
+                matchedPairs++;
+                flippedCards = [];
+                lockBoard = false;
+                if (matchedPairs === totalPairs) endGame(true);
+            } else {
+                attempts--;
+                attemptsSpan.textContent = attempts;
+                setTimeout(() => {
+                    c1.classList.remove('flipped');
+                    c2.classList.remove('flipped');
+                    flippedCards = [];
+                    lockBoard = false;
+                    if (attempts <= 0) endGame(false);
+                }, 800);
+            }
+        }
+    }
 
-  try {
-    const fileName = backgroundMusicFileNames[gameLevelName];
-    if (fileName) {
-      backgroundMusic.src = `/static/memgame/sounds/${fileName}`;
-    }
-  } catch {}
+    function startTimer() {
+        timer = setInterval(() => {
+            timeLeft--;
+            timeSpan.textContent = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                endGame(false);
+            }
+        }, 1000);
+    }
 
+    function endGame(win) {
+        clearInterval(timer);
+        lockBoard = true;
+        document.getElementById('background-music').pause();
 
-  const icons = ['🍇', '🍉', '🍊', '🍓', '🍍', '🍎', '🍐', '🍋', '🍌', '🥭', '🥝', '🍒'];
+        if (win) document.getElementById('victory-sound').play();
+        else document.getElementById('defeat-sound').play();
 
-  let attempts = parseInt(attemptsLeftSpan.textContent || '0', 10);
-  let timeLeft = parseInt(timeLeftSpan.textContent || '0', 10);
-  let timer;
-  let matchedPairs = 0;
-  const totalPairs = (Array.isArray(cardsData) ? cardsData.length : 0) / 2;
+        const timeUsed = initialTime - timeLeft;
 
-  let flippedCards = [];
-  let lockBoard = false;
+        const payload = {
+            result: win ? "win" : "lose",
+            level: gameLevelName, 
+            time_used: timeUsed,
+            attempts_left: attempts
+        };
 
-  // Música de fondo
-  try {
-    backgroundMusic.volume = 0.3;
-    backgroundMusic.play().catch(() => {});
-  } catch {}
+        fetch(endGameUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            $('#endGameLabel').text(win ? "¡Victoria!" : "Agotado");
+            $('#endGameMessage').html(`<p>${data.message}</p>`);
+            if (win && data.next_level_url) {
+                $('#next-level-btn').removeClass('d-none').attr('href', data.next_level_url);
+            }
 
-  function createBoard() {
-    if (Array.isArray(cardsData) && cardsData.length > 0) {
-      cardsData.forEach((cardValue, index) => {
-        const cardElement = document.createElement('div');
-        cardElement.classList.add('card');
-        cardElement.dataset.cardValue = cardValue;
-        cardElement.dataset.index = index;
+            // Mostrar formulario para guardar en el Leaderboard (siempre, aunque gane o pierda)
+            const saveBox = document.getElementById('leaderboard-save-box');
+            const savedMsg = document.getElementById('leaderboard-saved-msg');
+            if (saveBox) saveBox.classList.remove('d-none');
+            if (savedMsg) savedMsg.classList.add('d-none');
 
-        // ** Lógica corregida para obtener el icono **
-        const icon = icons[cardValue - 1];
+            // Prefill con el nombre de usuario si estuviera disponible en el futuro; por ahora queda vacío para que lo escriba.
+            const nameInput = document.getElementById('leaderboard-name');
+            if (nameInput) nameInput.value = "";
 
-        cardElement.innerHTML = `
-          <div class="card-inner">
-            <div class="card-front"></div>
-            <div class="card-back">${icon}</div>
-          </div>
-        `;
-        cardElement.addEventListener('click', flipCard);
-        gameBoard.appendChild(cardElement);
-      });
-    } else {
-      console.error("No hay datos de cartas para crear el tablero. Revisa que 'cardsData' se pase desde Django.");
-      gameBoard.innerHTML = "<p>No se pudieron cargar las cartas. Por favor, intente de nuevo.</p>";
-    }
-  }
+            $('#endGameModal').modal({backdrop: 'static', keyboard: false});
+        });
 
-  function flipCard() {
-    if (lockBoard) return;
-    if (this === flippedCards[0]) return;
-    if (this.classList.contains('matched')) return;
+        // Manejar clic en "Guardar en Leaderboard"
+        const saveBtn = document.getElementById('leaderboard-save-btn');
+        if (saveBtn) {
+            // Remover listeners previos clonando el botón
+            const newSaveBtn = saveBtn.cloneNode(true);
+            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
 
-    this.classList.add('flipped');
-    playSfx(flipSound, 0.6);             // ← SFX: voltear
-    flippedCards.push(this);
+            newSaveBtn.addEventListener('click', function() {
+                const nameInput = document.getElementById('leaderboard-name');
+                const name = nameInput ? nameInput.value.trim() : "";
+                if (!name) {
+                    alert("Por favor ingresa tu nombre antes de guardar.");
+                    return;
+                }
 
-    if (flippedCards.length === 2) {
-      lockBoard = true;
-      checkForMatch();
-    }
-  }
+                newSaveBtn.disabled = true;
+                newSaveBtn.textContent = "Guardando...";
 
-  function checkForMatch() {
-    const [firstCard, secondCard] = flippedCards;
-    const isMatch = firstCard.dataset.cardValue === secondCard.dataset.cardValue;
+                fetch(leaderboardSubmitUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        score: timeUsed,
+                        level: gameLevelName
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        newSaveBtn.classList.add('d-none');
+                        const savedMsg = document.getElementById('leaderboard-saved-msg');
+                        if (savedMsg) savedMsg.classList.remove('d-none');
+                    } else {
+                        alert(data.message || "No se pudo guardar el puntaje.");
+                        newSaveBtn.disabled = false;
+                        newSaveBtn.textContent = "Guardar en Leaderboard";
+                    }
+                })
+                .catch(() => {
+                    alert("Error de conexión al guardar en el Leaderboard.");
+                    newSaveBtn.disabled = false;
+                    newSaveBtn.textContent = "Guardar en Leaderboard";
+                });
+            });
+        }
+    }
 
-    if (isMatch) {
-      firstCard.classList.add('matched');
-      secondCard.classList.add('matched');
-      playSfx(matchSound, 0.7);         // ← SFX: acierto (si existe)
-      disableCards();
-      matchedPairs++;
-      if (matchedPairs === totalPairs) {
-        endGame(true);
-      } else {
-        lockBoard = false;
-      }
-    } else {
-      attempts--;
-      attemptsLeftSpan.textContent = String(attempts);
-      playSfx(mismatchSound, 0.6);      // ← SFX: fallo (si existe)
-      if (attempts <= 0) {
-        endGame(false);
-      } else {
-        unflipCards();
-      }
-    }
-  }
-
-  function disableCards() {
-    flippedCards.forEach(card => card.removeEventListener('click', flipCard));
-    resetBoard();
-  }
-
-  function unflipCards() {
-    setTimeout(() => {
-      flippedCards.forEach(card => card.classList.remove('flipped'));
-      resetBoard();
-    }, 800);
-  }
-
-  function resetBoard() {
-    flippedCards = [];
-    lockBoard = false;
-  }
-
-  function startTimer() {
-    timer = setInterval(() => {
-      timeLeft--;
-      timeLeftSpan.textContent = String(timeLeft);
-      if (timeLeft <= 0) {
-        clearInterval(timer);
-        endGame(false);
-      }
-    }, 1000);
-  }
-
-  function computeDuration(isWon) {
-    const initialTimeLimit = parseInt(timeLeftSpan.dataset.initialTimeLimit || '0', 10);
-    const finalTimeLeft = parseInt(timeLeftSpan.textContent || '0', 10);
-    let duration = isWon
-      ? (initialTimeLimit - finalTimeLeft)
-      : (initialTimeLimit - Math.max(0, finalTimeLeft));
-    if (!Number.isFinite(duration) || duration < 0) duration = initialTimeLimit;
-    return duration;
-  }
-
-  // ==== Modal de fin y post a backend orientado a niveles ====
-  function openEndGameModal({ title, message, nextUrl = null, autoRedirectMs = null }) {
-    const $modal = $('#endGameModal');
-    $('#endGameLabel').text(title);
-    $('#endGameMessage').html(message);
-
-    const $nextBtn = $('#next-level-btn');
-    if (nextUrl) {
-      $nextBtn.removeClass('d-none').attr('href', nextUrl);
-    } else {
-      $nextBtn.addClass('d-none').attr('href', '#');
-    }
-
-    $modal.modal({ backdrop: 'static', keyboard: false });
-    $modal.modal('show');
-
-    if (autoRedirectMs && nextUrl) {
-      setTimeout(() => {
-        window.location.href = nextUrl;
-      }, autoRedirectMs);
-    }
-  }
-
-  function postEndGameResult(resultPayload) {
-    const url = (typeof endGameUrl === 'string' && endGameUrl)
-      ? endGameUrl
-      : `/game/end/${encodeURIComponent(gameSessionId)}/`;
-
-    return fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken || '',
-      },
-      credentials: 'same-origin',
-      body: JSON.stringify(resultPayload),
-    }).then(res => {
-      if (!res.ok) throw new Error('Error al registrar fin de juego');
-      return res.json();
-    });
-  }
-
-  // Para evitar doble sonido al terminar
-  let endSfxPlayed = false;
-
-  // ==== GANA ====
-  function handleWin({ timeUsedSeconds, attemptsLeft }) {
-    if (!endSfxPlayed) {
-      endSfxPlayed = true;
-      try { victorySound.play().catch(() => {}); } catch {}
-    }
-
-    postEndGameResult({
-      result: 'win',
-      level: String(gameLevelName || ''),
-      time_used: timeUsedSeconds,
-      attempts_left: attemptsLeft,
-    })
-      .then(data => {
-        const nextUrl = data.next_level_url || null;
-        const msg = data.message || '¡Buenísima! Nivel superado.';
-
-        openEndGameModal({
-          title: '¡Victoria!',
-          message: msg, 
-          nextUrl,
-          autoRedirectMs: null, 
-        });
-      })
-      .catch(() => {
-
-        const fallback = (typeof selectLevelUrl === 'string' && selectLevelUrl) ? selectLevelUrl : '/memgame/select_level/';
-        openEndGameModal({
-          title: '¡Victoria!',
-          message: 'Nivel superado, pero no pude registrar el resultado. Elige el siguiente nivel.',
-          nextUrl: fallback,
-          autoRedirectMs: null, 
-        });
-      });
-  }
-
-  // ==== PIERDE ====
-  function handleLose({ timeUsedSeconds, attemptsLeft }) {
-    if (!endSfxPlayed) {
-      endSfxPlayed = true;
-      try { defeatSound.play().catch(() => {}); } catch {}
-    }
-
-    postEndGameResult({
-      result: 'lose',
-      level: String(gameLevelName || ''),
-      time_used: timeUsedSeconds,
-      attempts_left: attemptsLeft,
-    }).finally(() => {
-      openEndGameModal({
-        title: 'Sin intentos / Tiempo agotado',
-        message: 'No pasa nada, ¡intenta nuevamente!',
-        nextUrl: null,
-        autoRedirectMs: null,
-      });
-    });
-  }
-
-  // ==== Fin de juego (único lugar que se llama desde la lógica) ====
-  function endGame(isWon) {
-    clearInterval(timer);
-    lockBoard = true;
-    try { 
-      backgroundMusic.pause();
-      backgroundMusic.currentTime = 0; 
-    } catch {}
-
-    const timeUsed = computeDuration(isWon);
-    const attemptsLeftNow = parseInt(attemptsLeftSpan.textContent || '0', 10);
-
-    if (isWon) {
-      handleWin({ timeUsedSeconds: timeUsed, attemptsLeft: attemptsLeftNow });
-    } else {
-      handleLose({ timeUsedSeconds: timeUsed, attemptsLeft: attemptsLeftNow });
-    }
-  }
-
-  // Init
-  createBoard();
-  startTimer();
+    renderBoard();
+    startTimer();
+    document.getElementById('background-music').volume = 0.2;
+    document.getElementById('background-music').play().catch(() => {});
 });

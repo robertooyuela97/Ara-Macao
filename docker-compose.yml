@@ -5,12 +5,16 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       - db
     environment:
       # Variables de entorno para Django, conecta con la base de datos de Docker
       DATABASE_URL: postgres://user:password@db:5432/mydatabase
+      # Upstash Redis (Leaderboard) - definir valores en .env o entorno del host
+      UPSTASH_REDIS_REST_URL: ${UPSTASH_REDIS_REST_URL}
+      UPSTASH_REDIS_REST_TOKEN: ${UPSTASH_REDIS_REST_TOKEN}
+    restart: unless-stopped
 
   db:
     image: postgres:13
@@ -20,6 +24,7 @@ services:
       POSTGRES_DB: mydatabase
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
+    restart: unless-stopped
 
 volumes:
   postgres_data:

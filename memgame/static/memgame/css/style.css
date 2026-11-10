@@ -1,417 +1,312 @@
 /* =========
     Fuentes & Variables
+    Mantenemos tus variables originales con retoques de legibilidad.
     ========= */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
 :root {
-    --bg1: #0cc0d8;               /* Un azul muy claro y brillante */
-    --bg2: #0cc0d8;               /* Un azul ligeramente diferente */
-    --card-front: #64b5f6;        /* Azul claro */
-    --card-front-border: #42a5f5; /* Un azul más intenso */
-    --card-back: #ff8a65;         /* Naranja vibrante y atractivo */
-    --card-back-border: #ff7043;  /* Un naranja más intenso y brillante */
+    --bg1: #0cc0d8;               
+    --bg2: #0cc0d8;               
+    --card-front: #276710;        
+    --card-front-border: #196236; 
+    --card-back: #ff8a65;         
+    --card-back-border: #ff7043;  
     --text: #212121;
-    --muted: #757575;
-    --accent: #ff7043;            /* Naranja coral brillante para acentos */
-    --shadow: 0 10px 30px rgba(15, 23, 42, .1);
-    --radius: 16px;
-    --transition: .25s ease;
+    --muted: #546e7a;             
+    --accent: #ff7043;            
+    --shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    --radius: 20px;               
+    --transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Variables Maya para Login */
+    --jade-dark: #0a1f14;
+    --jade-medium: #1b4332;
+    --maya-gold: #d4af37;
 }
 
 /* =========
-    Body / Layout
+    Body / Layout Global (Juego, Perfil, Niveles)
     ========= */
 body {
-
-    background-color: #0cc0d8; /* Un fondo sólido para evitar conflictos */
+    /* Imagen de fondo solicitada con overlay degradado para legibilidad */
+    background-image: linear-gradient(to right, rgba(10, 31, 20, 0.8), rgba(10, 31, 20, 0.4)), 
+                      url('/static/memgame/images/loginFruit.jpg');
+    
+    background-size: cover;          
+    background-position: center;     
+    background-repeat: no-repeat;    
+    background-attachment: fixed;    
+    background-color: #13622b; 
+    
     color: var(--text);
-    font-family: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    font-family: "Poppins", sans-serif;
     margin: 0;
     min-height: 100dvh;
     display: grid;
     place-items: center;
-    padding: clamp(8px, 2vw, 20px);
+    padding: clamp(10px, 2vw, 30px);
 }
 
-/* Contenedor tipo "glass" con degradado */
+/* EXCEPCIÓN PARA EL LOGIN: 
+   Si el body contiene la clase del split-container, quitamos la imagen de fondo 
+   para que no se vea doble.
+*/
+body:has(.split-container) { 
+    background-image: none !important; 
+    background-color: var(--jade-dark) !important;
+}
+
+/* Contenedor tipo "glass" (Perfil, Selección de Niveles, etc.) */
 .container {
-  background: linear-gradient(135deg, rgba(71, 221, 240, 0.65), rgba(12, 192, 216, 0.45));
+  background: rgba(255, 255, 255, 0.88); 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(34, 126, 192, 0.8);
-  padding: clamp(24px, 3vw, 36px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: clamp(25px, 3.5vw, 45px);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  max-width: 920px;
+  max-width: 950px;
   width: 100%;
-  margin: 0 auto 0.45rem;
+  margin: 0 auto 1rem;
   font-weight: 700;
-  color: #000 !important;
-  letter-spacing: 0.2px;
-  animation: fadeUp 0.45s ease both;
+  color: #1a1a1a !important;
+  animation: fadeUp 0.6s ease-out both;
 }
 
 /* =========
-    Tipografía
+    Tipografía & Niveles
     ========= */
-h1, h2, h3 {
-    text-align: center;
-    margin: 0 0 18px;
-    letter-spacing: 0.4px;
-    font-weight: 700;
-    color: var(--text);
-}
+h1, h2, h3 { text-align: center; margin: 0 0 20px; font-weight: 700; color: #081c15; }
+h1 { font-size: clamp(28px, 4vw, 40px); }
 
-h1 {
-    font-size: clamp(26px, 3.2vw, 36px);
-}
+p { text-align: center; color: var(--muted); line-height: 1.6; }
 
-h2 {
-    font-size: clamp(22px, 2.6vw, 30px);
-}
-
-h3 {
-    font-size: clamp(18px, 2.2vw, 24px);
-}
-
-p {
-    text-align: center;
-    color: var(--muted);
-    font-size: clamp(14px, 1.8vw, 16px);
-}
-
-/* =========
-    Estilo de la lista de niveles
-    ========= */
 .list-group-item {
-    border-radius: 20px !important;
-    transition: transform var(--transition);
+    border-radius: 15px !important;
+    margin-bottom: 8px;
+    border: none !important;
+    transition: all var(--transition);
+    cursor: pointer;
 }
+.list-group-item:hover { transform: scale(1.02) translateX(8px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 
-.list-group-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-}
+.list-group-item-primary { background-color: #fce4ec !important; color: #c2185b !important; border-left: 5px solid #ec407a !important; }
+.list-group-item-warning { background-color: #e8f5e9 !important; color: #2e7d32 !important; border-left: 5px solid #66bb6a !important; }
+.list-group-item-danger  { background-color: #e3f2fd !important; color: #1565c0 !important; border-left: 5px solid #42a5f5 !important; }
 
-.list-group-item-primary {
-    background-color: #dc3f73 !important; /* Rosa pálido */
-    color: #212121 !important;
-    border-color: #f8bbd0 !important;
-}
-
-.list-group-item-warning {
-    background-color: #37e813 !important; /* Amarillo muy claro */
-    color: #212121 !important;
-    border-color: #fff9c4 !important;
-}
-
-.list-group-item-danger {
-    background-color: #228bd5 !important; /* Azul pálido */
-    color: #212121 !important;
-    border-color: #bbdefb !important;
-}
-
-.stars {
-    color: gold;
-    text-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-    margin-left: 5px;
-}
+.stars { color: #ffb300; text-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 8px; }
 
 /* =========
     Botones
     ========= */
 .btn-primary, .btn-success, .btn-info, .btn-secondary {
-    margin-top: 10px;
-    border-radius: 14px;
+    margin-top: 12px;
+    border-radius: 12px;
     border: none;
-    font-weight: 600;
-    font-size: 16px;
-    padding: 10px 14px;
-    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
-    box-shadow: 0 8px 18px rgba(255, 112, 67, 0.18); /* Sombra con el nuevo color de acento */
+    font-weight: 700;
+    padding: 12px 20px;
+    text-transform: uppercase;
+    transition: all var(--transition);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
-
-.btn-primary:hover,
-.btn-success:hover,
-.btn-info:hover,
-.btn-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 28px rgba(255, 112, 67, 0.24);
-}
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(255, 112, 67, 0.3); filter: brightness(1.1); }
 
 /* =========
-    Grid del juego (SIEMPRE 4 columnas)
+    Tablero de Juego
     ========= */
 #game-board {
     display: grid;
-    grid-template-columns: repeat(4, minmax(110px, 1fr));
-    gap: 18px;
-    max-width: 720px;
-    margin: 22px auto 4px;
-    padding: 14px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.6);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    max-width: 750px;
+    margin: 30px auto 10px;
+    padding: 20px;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     justify-items: center;
-    animation: fadeUp 0.5s ease 0.05s both;
 }
 
-/* Cartas cuadradas con animación de entrada */
 #game-board .card {
-    width: 140px;
-    height: 140px;
-    background: transparent;
-    border: 0;
-    border-radius: 14px;
-    cursor: pointer;
-    perspective: 1000px;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-    transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
-    will-change: transform;
-    opacity: 0;
-    transform: translateY(10px) scale(0.98);
-    animation: cardIn 0.35s ease forwards;
-}
-
-#game-board .card:nth-child(1) { animation-delay: 0.03s; }
-#game-board .card:nth-child(2) { animation-delay: 0.06s; }
-#game-board .card:nth-child(3) { animation-delay: 0.09s; }
-#game-board .card:nth-child(4) { animation-delay: 0.12s; }
-#game-board .card:nth-child(5) { animation-delay: 0.15s; }
-#game-board .card:nth-child(6) { animation-delay: 0.18s; }
-#game-board .card:nth-child(7) { animation-delay: 0.21s; }
-#game-board .card:nth-child(8) { animation-delay: 0.24s; }
-#game-board .card:nth-child(9) { animation-delay: 0.27s; }
-#game-board .card:nth-child(10) { animation-delay: 0.30s; }
-#game-board .card:nth-child(11) { animation-delay: 0.33s; }
-#game-board .card:nth-child(12) { animation-delay: 0.36s; }
-#game-board .card:nth-child(13) { animation-delay: 0.39s; }
-#game-board .card:nth-child(14) { animation-delay: 0.42s; }
-#game-board .card:nth-child(15) { animation-delay: 0.45s; }
-#game-board .card:nth-child(16) { animation-delay: 0.48s; }
-
-#game-board .card:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.05);
+    width: 100%;
+    aspect-ratio: 1/1; /* Mantiene las cartas cuadradas */
+    perspective: 1200px;
+    animation: cardIn 0.4s ease forwards;
 }
 
 #game-board .card-inner {
     position: absolute;
     width: 100%;
     height: 100%;
-    text-align: center;
-    transition: transform 0.6s cubic-bezier(.2, .8, .2, 1);
+    transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform-style: preserve-3d;
-    border-radius: 14px;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
-#game-board .card.flipped .card-inner {
-    transform: rotateY(180deg);
-}
+#game-board .card.flipped .card-inner { transform: rotateY(180deg); }
 
-/* Caras */
-#game-board .card-front,
-#game-board .card-back {
+#game-board .card-front, #game-board .card-back {
     position: absolute;
     inset: 0;
-    -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    border-radius: 14px;
+    border-radius: 18px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 2.2em;
-    font-weight: 800;
-    color: #fff;
-    user-select: none;
-    padding: 0.2em;
+    font-size: 2.5em;
 }
 
-#game-board .card-front {
-    background: linear-gradient(160deg, var(--card-front), var(--card-front-border));
-    border: 2px solid var(--card-front-border);
-    box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.06);
-}
+#game-board .card-front { background: linear-gradient(145deg, var(--card-front), #143606); border: 2px solid rgba(255,255,255,0.1); }
+#game-board .card-back  { background: linear-gradient(145deg, var(--card-back), #e64a19); transform: rotateY(180deg); border: 2px solid rgba(255,255,255,0.2); }
 
-#game-board .card-back {
-    background: linear-gradient(160deg, var(--card-back), var(--card-back-border));
-    border: 2px solid var(--card-back-border);
-    transform: rotateY(180deg);
-    box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.08);
-}
-
-#game-board .card.matched {
-    opacity: 0.55;
-    cursor: default;
-    pointer-events: none;
-    filter: saturate(1.1);
-    animation: pop 300ms ease;
-}
+#game-board .card.matched { opacity: 0.6; transform: scale(0.92); pointer-events: none; }
 
 /* =========
-    Formularios (labels SIEMPRE visibles en negro y negrita)
+    Formularios
     ========= */
-form p {
-    margin-bottom: 1rem;
-    text-align: left;
-    color: var(--muted);
-}
-
-/* más específico para ganar a Bootstrap */
-.container form label,
-form label {
-    display: block;
-    margin-bottom: 0.45rem;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: 0.2px;
-}
-
-/* Inputs */
-form input[type="text"],
-form input[type="password"],
-form input[type="email"] {
+form input {
     width: 100%;
-    padding: 0.95rem 1rem;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    background: rgba(255, 255, 255, 0.95);
-    color: #111;
+    padding: 1rem;
+    border: 2px solid #edf2f7;
+    background: #f8fafc;
+    border-radius: 12px;
     font-weight: 600;
-    border-radius: 14px;
-    outline: none;
-    box-sizing: border-box;
-    font-size: 16px;
-    transition: box-shadow var(--transition), border-color var(--transition), background var(--transition), transform var(--transition);
+    transition: all var(--transition);
 }
-
-form input::placeholder {
-    color: var(--muted);
-}
-
-form input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(255, 112, 67, 0.18);
-    background: #fff;
-    transform: translateY(-1px);
-}
+form input:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(255, 112, 67, 0.15); outline: none; }
 
 /* =========
-    Otros detalles
+    Login Split Screen (Estética Maya)
     ========= */
-audio {
-    display: none;
-}
-
-#attempts-left,
-#time-left {
-    font-weight: 800;
-    color: #212121;
-    padding: 0.15rem 0.5rem;
-    border-radius: 8px;
-    background: linear-gradient(135deg, rgba(255, 112, 67, 0.18), rgba(255, 173, 153, 0.12));
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-
-/* =========
-    Animaciones
-    ========= */
-@keyframes pop {
-    from {
-        transform: scale(0.96);
-    }
-    to {
-        transform: scale(1);
-    }
-}
-
-@keyframes fadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes cardIn {
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* =========
-    Responsivo
-    ========= */
-@media (max-width: 768px) {
-    .container {
-        padding: 22px;
-    }
-    #game-board {
-        gap: 14px;
-        max-width: 600px;
-    }
-    #game-board .card {
-        width: 120px;
-        height: 120px;
-    }
-}
-
-@media (max-width: 520px) {
-    #game-board {
-        gap: 12px;
-        max-width: 480px;
-    }
-    #game-board .card {
-        width: 100px;
-        height: 100px;
-    }
-}
-
-/* =================================
-    Estilos para el Login Split Screen
-    ================================= */
 .split-container {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
+  background-color: var(--jade-dark);
 }
 
-.login-section,
-.image-section {
+.login-section {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  background-color: #ffffff; /* Fondo para la sección del login */
+  padding: 40px;
+  background: radial-gradient(circle at center, var(--jade-medium) 0%, var(--jade-dark) 100%);
+  position: relative;
 }
 
 .image-section {
-  background-image: url('/static/memgame/images/loginFruit.jpg');
+  flex: 1.5;
+  background-image: linear-gradient(to right, var(--jade-dark), rgba(10, 31, 20, 0.2)), 
+                    url('/static/memgame/images/loginFruit.jpg');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
-}
-/* Ajustes para el formulario dentro del login-section */
-.login-form-container {
-  max-width: 400px;
-  width: 100%;
+  border-left: 6px solid var(--maya-gold);
 }
 
-/* Media query para pantallas pequeñas (móviles) */
-@media (max-width: 768px) {
-  .split-container {
-    flex-direction: column;
-  }
-  .image-section {
-    height: 250px; /* Altura para la imagen en móviles */
-  }
+.login-form-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 3rem;
+  background: rgba(10, 31, 20, 0.95);
+  border: 2px solid var(--maya-gold);
+  border-radius: 8px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+  backdrop-filter: blur(15px);
+  position: relative;
+  z-index: 2;
 }
+
+/* =========
+    Animaciones & Responsivo
+    ========= */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes cardIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+@media (max-width: 850px) {
+  .split-container { flex-direction: column; }
+  .image-section { order: -1; min-height: 40vh; border-left: none; border-bottom: 5px solid var(--maya-gold); }
+  #game-board { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 480px) {
+  #game-board { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+
+audio { display: none; }
+
+
+
+/* --- ESTILOS DE NIVELES (FIEL A TU IMAGEN) --- */
+.list-group-item {
+    background: white !important;
+    border-radius: 20px !important;
+    margin-bottom: 20px;
+    border: none !important;
+    padding: 20px 30px !important;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none !important;
+}
+
+.list-group-item:hover { transform: scale(1.02); }
+
+/* Colores de Títulos */
+.level-title-basic { color: #e91e63; font-weight: 700; } /* Rosa */
+.level-title-medium { color: #2d7a4d; font-weight: 700; } /* Verde */
+.level-title-advanced { color: #0056b3; font-weight: 700; } /* Azul */
+
+.badge-blue { background-color: #007bff; color: white; border-radius: 50px; padding: 5px 15px; }
+.badge-yellow { background-color: #ffc107; color: #212121; border-radius: 50px; padding: 5px 15px; }
+.badge-red { background-color: #dc3545; color: white; border-radius: 50px; padding: 5px 15px; }
+
+/* --- TABLERO DE JUEGO --- */
+#game-board {
+    display: grid;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* Cuadrículas para 8, 12 y 16 cartas (4 columnas) */
+.grid-8, .grid-12, .grid-16 {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.card {
+    aspect-ratio: 1/1;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.card.flipped .card-inner { transform: rotateY(180deg); }
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+}
+
+.card-front { background: var(--card-front); }
+.card-back { background: var(--card-back); transform: rotateY(180deg); }

@@ -18,4 +18,7 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("game/move/", views.game_move_api, name="game_move_api"),
     path("game/end/<int:session_id>/", views.game_end_api, name="game_end_api"),
+    path("leaderboard/", views.leaderboard_view, name="leaderboard"),
+    path("api/leaderboard/submit/", views.leaderboard_submit_api, name="leaderboard_submit_api"),
+    path("api/leaderboard/top/", views.leaderboard_top_api, name="leaderboard_top_api"),
 ]
