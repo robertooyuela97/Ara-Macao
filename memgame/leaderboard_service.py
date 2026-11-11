@@ -115,16 +115,16 @@ class UpstashLeaderboard:
             return []
 
         results = []
-        for item in data.get("result", []):
+        raw_results = data.get("result", [])
+        # Iterar de 2 en 2: índice par = miembro, índice impar = puntaje
+        for i in range(0, len(raw_results) - 1, 2):
+            member = raw_results[i]
+            score_str = raw_results[i + 1]
             try:
-                if len(item) >= 2:
-                    score_value = float(item[1])
-                    results.append({"member": item[0], "score": score_value})
-            except (ValueError, TypeError, AttributeError) as exc:
-                # Descarta individualmente scores no numéricos (ej. 'o') sin romper todo el ranking
-                msg = f"Score no numérico descartado: {item} -> {exc}"
-                logger.warning(msg)
-                print(msg, flush=True)
+                score = float(score_str)
+                results.append({"member": member, "score": score})
+            except (ValueError, TypeError):
+                # Descarta de forma segura cualquier elemento corrupto sin romper la app
                 continue
 
         return results
