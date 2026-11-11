@@ -106,8 +106,10 @@ if DATABASE_URL:
             default=DATABASE_URL,
             conn_max_age=600,
             ssl_require=True,
-            options={'options': '-c client_encoding=utf8'}
         )
+    }
+    DATABASES['default']['OPTIONS'] = {
+        'options': '-c client_encoding=utf8'
     }
 else:
     raise ValueError("DATABASE_URL no está definida en las variables de entorno de Render.")
