@@ -115,14 +115,16 @@ class UpstashLeaderboard:
             return []
 
         results = []
-        try:
-            for item in data.get("result", []):
+        for item in data.get("result", []):
+            try:
                 if len(item) >= 2:
-                    results.append({"member": item[0], "score": float(item[1])})
-        except (ValueError, TypeError, AttributeError) as exc:
-            msg = f"Error parseando resultados de Upstash: {exc}"
-            logger.error(msg)
-            print(msg, flush=True)
-            return []
+                    score_value = float(item[1])
+                    results.append({"member": item[0], "score": score_value})
+            except (ValueError, TypeError, AttributeError) as exc:
+                # Descarta individualmente scores no numéricos (ej. 'o') sin romper todo el ranking
+                msg = f"Score no numérico descartado: {item} -> {exc}"
+                logger.warning(msg)
+                print(msg, flush=True)
+                continue
 
         return results
