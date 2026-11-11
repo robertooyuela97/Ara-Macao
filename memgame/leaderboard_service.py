@@ -72,7 +72,7 @@ class UpstashLeaderboard:
         return self._request(
             "POST",
             f"zadd/{LEADERBOARD_KEY}",
-            json={"score": score, "member": member},
+            json={"score": str(score), "member": member},
         )
 
     def get_top(

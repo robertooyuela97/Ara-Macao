@@ -25,7 +25,7 @@ class PlayerProfile(models.Model):
         """
         try:
            
-            completed_sessions = self.gamesession_set.filter(is_won__isnull=False, duration__isnull=False)
+            completed_sessions = self.user.gamesession_set.filter(is_won__isnull=False, duration__isnull=False)
 
             self.games_played = completed_sessions.count()
             self.total_wins = completed_sessions.filter(is_won=True).count()
