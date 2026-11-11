@@ -105,7 +105,8 @@ if DATABASE_URL:
         'default': dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True
+            ssl_require=True,
+            options={'options': '-c client_encoding=utf8'}
         )
     }
 else:

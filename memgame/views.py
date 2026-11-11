@@ -70,38 +70,45 @@ def select_level_view(request):
     return render(request, "memgame/select_level.html", {"levels": LEVELS})
 
 @login_required
-def game_view(request, level):
+def game_view(request, nivel):
     """
-    Renderiza el juego para un nivel dado (string).
+    Renderiza el juego para un nivel dado (string sin acentos).
     Crea una GameSession y pasa su id al template.
     """
-    level = str(level).strip()
-    # Ahora, el numero de cartas es siempre 16 para un tablero 4x4.
- 
-    
-    if level == "Básico":
+    nivel = str(nivel).strip().lower()
+    # Mapeo de slugs sin acentos a nombres de nivel para la base de datos
+    NIVEL_MAP = {
+        "basico": "Básico",
+        "medio": "Medio",
+        "avanzado": "Avanzado",
+    }
+    nivel_db = NIVEL_MAP.get(nivel)
+    if nivel_db is None:
+        # Si el nivel no es válido, redirigimos.
+        return redirect("memgame:select_level")
+
+    if nivel_db == "Básico":
         num_cards = 8
         game_time_limit, initial_attempts = 60, 10
-    elif level == "Medio":
+    elif nivel_db == "Medio":
         num_cards = 12
         game_time_limit, initial_attempts = 80, 8
-    elif level == "Avanzado":
+    elif nivel_db == "Avanzado":
         num_cards = 16
         game_time_limit, initial_attempts = 90, 6
     else:
-        # Si el nivel no es valido, redirigimos.
         return redirect("memgame:select_level")
 
     # Generar pares (valores como strings)
-    # Se generan 8 pares de cartas para un total de 16.
     card_values = [str(i) for i in range(1, (num_cards // 2) + 1)] * 2
     random.shuffle(card_values)
 
-    # Crear sesion de juego
-    game_session = GameSession.objects.create(player=request.user, level=level)
+    # Crear sesión de juego
+    game_session = GameSession.objects.create(player=request.user, level=nivel_db)
 
     ctx = {
-        "level": level,
+        "nivel": nivel_db,
+        "level": nivel_db,
         "initial_attempts": initial_attempts,
         "cards": card_values,
         "game_session_id": game_session.id,
@@ -212,6 +219,13 @@ def game_end_api(request, session_id):
     if session.is_won:
         nxt = _next_level_name(level_for_next)
         if nxt:
+            # Mapear nombre de nivel con acentos a slug sin acentos para la URL
+            NIVEL_TO_SLUG = {
+                "Básico": "basico",
+                "Medio": "medio",
+                "Avanzado": "avanzado",
+            }
+            nxt_slug = NIVEL_TO_SLUG.get(nxt, nxt.lower())
             return JsonResponse({
                 "status": "success",
                 "message": f"Nivel {level_for_next} superado. Preparando {nxt}...",
@@ -219,7 +233,7 @@ def game_end_api(request, session_id):
                 "duration": session.duration,
                 "session_id": session.id,
                 "next_level": nxt,
-                "next_level_url": reverse("memgame:game", kwargs={"level": nxt}),
+                "next_level_url": reverse("memgame:game_level", kwargs={"nivel": nxt_slug}),
             })
         else:
             return JsonResponse({
